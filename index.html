@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Notes & Rewards</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div id="app" class="min-h-screen">
+        <div class="flex">
+            <aside class="w-64 h-screen bg-gray-800 text-white fixed">
+                <div class="p-4">
+                    <h1 class="text-xl font-bold mb-4">Digital Notes</h1>
+                    <button @click="createNote" class="bg-blue-500 text-white px-4 py-2 rounded w-full mb-4">
+                        New Note
+                    </button>
+                    <div class="space-y-2">
+                        <template v-for="note in notes">
+                            <div @click="selectNote(note)" 
+                                 :class="{'bg-gray-700': selectedNote === note}"
+                                 class="p-2 rounded cursor-pointer hover:bg-gray-700">
+                                {{ note.title }}
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </aside>
+            <main class="ml-64 flex-1 p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-lg">Points: {{ points }}</span>
+                        <span class="text-lg">Rewards: ${{ rewards }}</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="toggleTheme" class="p-2 rounded-full hover:bg-gray-200">
+                            <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'"></i>
+                        </button>
+                        <button @click="showDonateModal = true" class="bg-green-500 text-white px-4 py-2 rounded">
+                            Donate Meal
+                        </button>
+                    </div>
+                </div>
+                <div v-if="selectedNote" class="bg-white rounded-lg shadow-lg p-6">
+                    <input v-model="selectedNote.title" 
+                           class="text-2xl font-bold mb-4 w-full border-none focus:outline-none">
+                    <div contenteditable="true" 
+                         @input="updateContent($event)" 
+                         class="prose max-w-none min-h-[300px] focus:outline-none"
+                         v-html="selectedNote.content">
+                    </div>
+                </div>
+            </main>
+        </div>
+        <div v-if="showDonateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white p-6 rounded-lg w-96">
+                <h2 class="text-xl font-bold mb-4">Donate a Meal</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <button @click="donate(2)" class="bg-blue-500 text-white px-4 py-2 rounded">$2 Meal</button>
+                        <button @click="donate(10)" class="bg-blue-500 text-white px-4 py-2 rounded">$10 Large Meal</button>
+                    </div>
+                    <button @click="showDonateModal = false" class="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded mt-4">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { createApp, ref } = Vue;
+        createApp({
+            setup() {
+                const notes = ref([]);
+                const selectedNote = ref(null);
+                const points = ref(0);
+                const rewards = ref(0);
+                const isDark = ref(false);
+                const showDonateModal = ref(false);
+
+                const createNote = () => {
+                    const newNote = {
+                        id: Date.now(),
+                        title: 'New Note',
+                        content: ''
+                    };
+                    notes.value.push(newNote);
+                    selectedNote.value = newNote;
+                };
+
+                const selectNote = (note) => {
+                    selectedNote.value = note;
+                };
+
+                const updateContent = (event) => {
+                    if (selectedNote.value) {
+                        selectedNote.value.content = event.target.innerHTML;
+                    }
+                };
+
+                const toggleTheme = () => {
+                    isDark.value = !isDark.value;
+                    document.body.classList.toggle('dark');
+                };
+
+                const donate = (amount) => {
+                    points.value += amount * 10;
+                    rewards.value += amount * 0.1;
+                    showDonateModal.value = false;
+                };
+
+                return {
+                    notes,
+                    selectedNote,
+                    points,
+                    rewards,
+                    isDark,
+                    showDonateModal,
+                    createNote,
+                    selectNote,
+                    updateContent,
+                    toggleTheme,
+                    donate
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
